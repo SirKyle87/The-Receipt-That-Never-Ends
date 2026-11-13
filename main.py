@@ -8,7 +8,7 @@ hide_debug_information()
 set_website_title("The Receipt That Never Ends")
 set_site_information(
     author="Kyle Goodwin",
-    description="A Game The player prints receipts to
+    description=" A game the player prints receipts to
 earn money",
     sources="Thanks to the Drafter docs and my study group.",
     planning=["Kyle Goodwin Cisc 106 Final Project 0", "Kyle Goodwin CS1 Final Project 1: Design"],
