@@ -5,7 +5,15 @@ from dataclasses import dataclass
 
 
 hide_debug_information()
-set_website_title("Your Drafter Website")
+set_website_title("The Receipt That Never Ends")
+set_site_information(
+    author="Kyle Goodwin",
+    description="A Game The player prints receipts to
+earn money",
+    sources="Thanks to the Drafter docs and my study group.",
+    planning=["Kyle Goodwin Cisc 106 Final Project 0", "Kyle Goodwin CS1 Final Project 1: Design"],
+    links=["https://github.com/SirKyle87/The-Receipt-That-Never-Ends"]
+)
 set_website_framed(False)
 
 """
@@ -247,14 +255,14 @@ def get_display_name(state: State) -> str:
 # Helper functions that build pieces of pages
 # ---------------------------------------------------------------------------
 def nav_bar() -> list:
-    """Return the navigation links shown at the top of every page."""
+    """Return the navigation buttons shown at the top of every page."""
     return [
-        Link("Factory", index),
-        Link("Shop", shop_page),
-        Link("Receipt History", receipt_history),
-        Link("Stats", stats_page),
-        Link("Settings", settings_page),
-        Link("How to Play", info_page),
+        Button("Factory", index),
+        Button("Shop", shop_page),
+        Button("Receipt History", receipt_history),
+        Button("Stats", stats_page),
+        Button("Settings", settings_page),
+        Button("How to Play", info_page),
         HorizontalRule(),
     ]
 
@@ -299,12 +307,11 @@ def index(state: State) -> Page:
     return Page(state, nav_bar() + [
         Header(get_display_name(state), 1),
         f"Rank: {get_rank_title(state.total_earned)}",
-        "YOUR COMPANY BALANCE",
         Header(format_money(state.money), 2),
         f"Each receipt earns {format_money(state.money_per_click)}",
         Button("PRINT RECEIPT", print_receipt),
         HorizontalRule(),
-        "LATEST COMPANY MEMO",
+        "LATEST COMPANY MEMO:",
         state.last_memo,
         HorizontalRule(),
         "Progress toward the Receipt for Everything:",
@@ -485,123 +492,125 @@ def victory_page(state: State) -> Page:
 # ---------------------------------------------------------------------------
 # Unit tests
 # Routes are tested by calling them directly and checking the returned
-# Page's state. Every route has at least one test. None of them use
-# randomness, so all of them can be tested.
+# Page's state, using Drafter's assert_equal. Every route has at least one
+# test. None of them use randomness, so all of them can be tested.
 # ---------------------------------------------------------------------------
 def test_formatting_helpers() -> None:
     """Test format_money, make_progress_bar, and clean_company_name."""
-    assert format_money(0) == "$0"
-    assert format_money(1250) == "$1,250"
-    assert format_money(1_000_000) == "$1,000,000"
-    assert make_progress_bar(0) == "[" + "-" * 20 + "] 0%"
-    assert make_progress_bar(50) == "[" + "#" * 10 + "-" * 10 + "] 50%"
-    assert make_progress_bar(100) == "[" + "#" * 20 + "] 100%"
-    assert clean_company_name("  Acme  ") == "Acme"
-    assert clean_company_name("   ") == DEFAULT_COMPANY_NAME
-    assert len(clean_company_name("x" * 100)) == MAX_NAME_LENGTH
+    assert_equal(format_money(0), "$0")
+    assert_equal(format_money(1250), "$1,250")
+    assert_equal(format_money(1_000_000), "$1,000,000")
+    assert_equal(make_progress_bar(0), "[" + "-" * 20 + "] 0%")
+    assert_equal(make_progress_bar(50), "[" + "#" * 10 + "-" * 10 + "] 50%")
+    assert_equal(make_progress_bar(100), "[" + "#" * 20 + "] 100%")
+    assert_equal(clean_company_name("  Acme  "), "Acme")
+    assert_equal(clean_company_name("   "), DEFAULT_COMPANY_NAME)
+    assert_equal(len(clean_company_name("x" * 100)), MAX_NAME_LENGTH)
 
 
 def test_upgrade_helpers() -> None:
     """Test upgrade_price, can_afford, find_upgrade_index, try_purchase."""
     sample = Upgrade("Test", "desc", 100, 5, 0, "memo")
-    assert upgrade_price(sample) == 100
+    assert_equal(upgrade_price(sample), 100)
     sample.times_bought = 1
-    assert upgrade_price(sample) == 115
+    assert_equal(upgrade_price(sample), 115)
     sample.times_bought = 2
-    assert upgrade_price(sample) == 132
-    assert can_afford(10, 10)
-    assert not can_afford(9, 10)
+    assert_equal(upgrade_price(sample), 132)
+    assert_equal(can_afford(10, 10), True)
+    assert_equal(can_afford(9, 10), False)
     shop = make_upgrades()
-    assert find_upgrade_index(shop, "Unpaid Intern") == 2
-    assert find_upgrade_index(shop, "Nonexistent") == -1
+    assert_equal(find_upgrade_index(shop, "Unpaid Intern"), 2)
+    assert_equal(find_upgrade_index(shop, "Nonexistent"), -1)
     state = make_new_state()
-    assert not try_purchase(state, state.upgrades[0])
+    assert_equal(try_purchase(state, state.upgrades[0]), False)
     state.money = 10
-    assert try_purchase(state, state.upgrades[0])
-    assert state.money == 0
-    assert state.money_per_click == 2
-    assert state.upgrades[0].times_bought == 1
+    assert_equal(try_purchase(state, state.upgrades[0]), True)
+    assert_equal(state.money, 0)
+    assert_equal(state.money_per_click, 2)
+    assert_equal(state.upgrades[0].times_bought, 1)
 
 
 def test_progress_helpers() -> None:
     """Test ranks, memos, goal checks, counting, and departments."""
-    assert get_rank_title(0) == "Humble Cashier"
-    assert get_rank_title(1_000) == "Paper Pusher"
-    assert get_rank_title(500_000) == "Supreme Receipt Officer"
-    assert get_company_memo(0, True) == STARTING_MEMO
-    assert "first $100" in get_company_memo(150, True)
-    assert "disabled" in get_company_memo(150, False)
-    assert has_reached_goal(WIN_TARGET)
-    assert not has_reached_goal(WIN_TARGET - 1)
-    assert percent_to_goal(0) == 0
-    assert percent_to_goal(WIN_TARGET * 2) == 100
-    assert count_upgrades_bought(make_upgrades()) == 0
+    assert_equal(get_rank_title(0), "Humble Cashier")
+    assert_equal(get_rank_title(1_000), "Paper Pusher")
+    assert_equal(get_rank_title(500_000), "Supreme Receipt Officer")
+    assert_equal(get_company_memo(0, True), STARTING_MEMO)
+    assert_equal("first $100" in get_company_memo(150, True), True)
+    assert_equal("disabled" in get_company_memo(150, False), True)
+    assert_equal(has_reached_goal(WIN_TARGET), True)
+    assert_equal(has_reached_goal(WIN_TARGET - 1), False)
+    assert_equal(percent_to_goal(0), 0)
+    assert_equal(percent_to_goal(WIN_TARGET * 2), 100)
+    assert_equal(count_upgrades_bought(make_upgrades()), 0)
     owned = make_upgrades()
     owned[0].times_bought = 2
     owned[3].times_bought = 1
-    assert count_upgrades_bought(owned) == 3
-    assert build_receipt_lines(owned) == [
+    assert_equal(count_upgrades_bought(owned), 3)
+    assert_equal(build_receipt_lines(owned), [
         "2 x Slightly Better Printer ... +$2 per click",
         "1 x Printer Farm ... +$40 per click",
-    ]
-    assert is_department_unlocked("Business", 0)
-    assert not is_department_unlocked("Big Business", 4_999)
-    assert is_department_unlocked("Big Business", 5_000)
+    ])
+    assert_equal(is_department_unlocked("Business", 0), True)
+    assert_equal(is_department_unlocked("Big Business", 4_999), False)
+    assert_equal(is_department_unlocked("Big Business", 5_000), True)
 
 
 def test_game_routes() -> None:
     """Test every route by calling it and checking the new state."""
     start = make_new_state()
-    assert start.money == 0 and start.has_won is False
-    assert index(start).state.money == 0
+    assert_equal(start.money, 0)
+    assert_equal(start.has_won, False)
+    assert_equal(index(start).state.money, 0)
 
     clicked = print_receipt(make_new_state()).state
-    assert clicked.money == 1
-    assert clicked.total_earned == 1
-    assert clicked.total_clicks == 1
+    assert_equal(clicked.money, 1)
+    assert_equal(clicked.total_earned, 1)
+    assert_equal(clicked.total_clicks, 1)
 
     almost_won = make_new_state()
     almost_won.total_earned = WIN_TARGET - 1
-    assert print_receipt(almost_won).state.has_won is True
+    assert_equal(print_receipt(almost_won).state.has_won, True)
 
-    assert shop_page(make_new_state()).state.money == 0
+    assert_equal(shop_page(make_new_state()).state.money, 0)
 
     rich = make_new_state()
     rich.money = 10
     bought = buy_upgrade(rich, "Slightly Better Printer").state
-    assert bought.money == 0 and bought.money_per_click == 2
+    assert_equal(bought.money, 0)
+    assert_equal(bought.money_per_click, 2)
     broke = buy_upgrade(make_new_state(), "Slightly Better Printer").state
-    assert broke.money_per_click == 1
-    assert "Insufficient" in broke.last_memo
+    assert_equal(broke.money_per_click, 1)
+    assert_equal("Insufficient" in broke.last_memo, True)
     missing = buy_upgrade(make_new_state(), "Nonexistent").state
-    assert missing.money_per_click == 1
+    assert_equal(missing.money_per_click, 1)
 
-    assert stats_page(make_new_state()).state.total_clicks == 0
-    assert receipt_history(make_new_state()).state.money == 0
-    assert info_page(make_new_state()).state.money == 0
-    assert reset_page(make_new_state()).state.money == 0
-    assert victory_page(make_new_state()).state.has_won is False
-    assert settings_page(make_new_state()).state.department == "Business"
+    assert_equal(stats_page(make_new_state()).state.total_clicks, 0)
+    assert_equal(receipt_history(make_new_state()).state.money, 0)
+    assert_equal(info_page(make_new_state()).state.money, 0)
+    assert_equal(reset_page(make_new_state()).state.money, 0)
+    assert_equal(victory_page(make_new_state()).state.has_won, False)
+    assert_equal(settings_page(make_new_state()).state.department, "Business")
 
 
 def test_settings_and_reset_routes() -> None:
     """Test save_settings (unlocked and locked) and game_reset."""
     allowed = save_settings(make_new_state(), " Acme ", "Business", False).state
-    assert allowed.company_name == "Acme"
-    assert allowed.show_milestones is False
+    assert_equal(allowed.company_name, "Acme")
+    assert_equal(allowed.show_milestones, False)
     locked = save_settings(make_new_state(), "Acme", "Bigger Business", True).state
-    assert locked.department == "Business"
-    assert "locked" in locked.last_memo
+    assert_equal(locked.department, "Business")
+    assert_equal("locked" in locked.last_memo, True)
     unlocked_state = make_new_state()
     unlocked_state.total_earned = 5_000
     chosen = save_settings(unlocked_state, "Acme", "Big Business", True).state
-    assert chosen.department == "Big Business"
+    assert_equal(chosen.department, "Big Business")
     dirty = make_new_state()
     dirty.money = 999
     dirty.upgrades[0].times_bought = 3
     fresh = game_reset(dirty).state
-    assert fresh.money == 0
-    assert fresh.upgrades[0].times_bought == 0
+    assert_equal(fresh.money, 0)
+    assert_equal(fresh.upgrades[0].times_bought, 0)
 
 
 def run_unit_tests() -> None:
